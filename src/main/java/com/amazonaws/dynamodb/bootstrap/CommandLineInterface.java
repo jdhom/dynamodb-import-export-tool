@@ -20,6 +20,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import com.amazonaws.auth.profile.ProfileCredentialsProvider;
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
+import com.google.common.base.Strings;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
@@ -32,6 +36,8 @@ import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 import com.amazonaws.services.dynamodbv2.model.TableDescription;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
+
+import static java.lang.System.exit;
 
 /**
  * The interface that parses the arguments, and begins to transfer data from one
@@ -62,7 +68,7 @@ public class CommandLineInterface {
             LOGGER.error(e);
             JCommander.getConsole().println(e.getMessage());
             cmd.usage();
-            System.exit(1);
+            exit(1);
         }
 
         // show usage information if help flag exists
@@ -78,14 +84,43 @@ public class CommandLineInterface {
         final double writeThroughputRatio = params.getWriteThroughputRatio();
         final int maxWriteThreads = params.getMaxWriteThreads();
         final boolean consistentScan = params.getConsistentScan();
+        final boolean crossAccount = params.getCrossAccount();
+        final String sourceAccountProfile = params.getSourceAccountProfile();
+        final String destinationAccountProfile = params.getDestinationAccountProfile();
 
         final ClientConfiguration sourceConfig = new ClientConfiguration().withMaxConnections(BootstrapConstants.MAX_CONN_SIZE);
         final ClientConfiguration destinationConfig = new ClientConfiguration().withMaxConnections(BootstrapConstants.MAX_CONN_SIZE);
 
-        final AmazonDynamoDBClient sourceClient = new AmazonDynamoDBClient(
-                new DefaultAWSCredentialsProviderChain(), sourceConfig);
-        final AmazonDynamoDBClient destinationClient = new AmazonDynamoDBClient(
-                new DefaultAWSCredentialsProviderChain(), destinationConfig);
+        //// START Cross Account Hack
+        AmazonDynamoDBClient sourceClient;
+        AmazonDynamoDBClient destinationClient;
+
+        if (crossAccount) {
+            if (Strings.isNullOrEmpty(sourceAccountProfile)) {
+                System.out.println("'--crossAccount' must specify a --sourceAccountProfile");
+                exit(99);
+            }
+
+            if (Strings.isNullOrEmpty(destinationAccountProfile)) {
+                System.out.println("'--crossAccount must specify a --destinationAccountProfile");
+                exit(98);
+            }
+
+            ProfileCredentialsProvider sourceCreds = new ProfileCredentialsProvider(sourceAccountProfile);
+            sourceClient = new AmazonDynamoDBClient(sourceCreds, sourceConfig);
+
+            ProfileCredentialsProvider destinationCreds = new ProfileCredentialsProvider(destinationAccountProfile);
+            destinationClient = new AmazonDynamoDBClient(destinationCreds, destinationConfig);
+
+        }
+        else {
+            sourceClient = new AmazonDynamoDBClient(
+                    new DefaultAWSCredentialsProviderChain(), sourceConfig);
+            destinationClient = new AmazonDynamoDBClient(
+                    new DefaultAWSCredentialsProviderChain(), destinationConfig);
+        }
+        //// END Cross Account Hack
+
         sourceClient.setEndpoint(sourceEndpoint);
         destinationClient.setEndpoint(destinationEndpoint);
 
@@ -124,7 +159,7 @@ public class CommandLineInterface {
             LOGGER.error("Encountered exception when executing transfer.", e);
         } catch (InterruptedException e) {
             LOGGER.error("Interrupted when executing transfer.", e);
-            System.exit(1);
+            exit(1);
         } catch (SectionOutOfRangeException e) {
             LOGGER.error("Invalid section parameter", e);
         }

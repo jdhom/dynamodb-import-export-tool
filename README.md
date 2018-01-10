@@ -16,6 +16,7 @@ The DynamoDB Import Export Tool is designed to perform parallel scans on the sou
 
 2. This produces the target jar in the target/ directory, to start the replication process:
 
+```bash
 java -jar dynamodb-import-export-tool.jar
 
 --destinationEndpoint <destination_endpoint> // the DynamoDB endpoint where the destination table is located.
@@ -38,7 +39,32 @@ java -jar dynamodb-import-export-tool.jar
 
 --consistentScan <boolean> // (Optional, default=false) indicates whether consistent scan should be used when reading from the source table.
 
+--crossAccount <boolean> // (optional, default=false) when true requires --sourceAccountProfile and --destinationAccountProfile
+
+--sourceAccountProfile <string> // specifies aws profile name for table source
+
+--destinationAccountProfile <string> // specifies aws profile name for table destination
+
+```
 > **NOTE**: To split the replication process across multiple machines, simply use the totalSections & section command line arguments, where each machine will run one section out of [0 ... totalSections-1].
+
+## Cross Account Example
+
+Hacked original to allow migrating data across accounts in same region.
+
+```bash
+java -jar dynamodb-import-export-tool-1.1.0.jar \
+    --destinationEndpoint dynamodb.us-east-1.amazonaws.com \
+    --destinationTable SOURCE-TABLE-NAME \
+    --sourceEndpoint dynamodb.us-east-1.amazonaws.com \
+    --sourceTable DESTINATION-TABLE-NAME \
+    --writeThroughputRatio 1.0 \
+    --readThroughputRatio 0.90 \
+    --crossAccount \
+    --sourceAccountProfile source-profile-name \
+    --destinationAccountProfile destination-profile-name \
+    --maxWriteThreads 10
+```
 
 ## Using the API
 

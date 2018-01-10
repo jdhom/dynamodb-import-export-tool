@@ -109,4 +109,22 @@ public class CommandLineArgs {
     public boolean getConsistentScan() {
         return consistentScan;
     }
+
+    public static final String CROSS_ACCOUNT = "--crossAccount";
+    @Parameter(names = CROSS_ACCOUNT, description = "Cross account mode", required = false)
+    private boolean crossAccount = false;
+
+    public boolean getCrossAccount() { return crossAccount; }
+
+    public static final String SOURCE_ACCOUNT_PROFILE = "--sourceAccountProfile";
+    @Parameter(names = SOURCE_ACCOUNT_PROFILE, description = "Source table account", required = false)
+    private String sourceAccountProfile = "";
+
+    public String getSourceAccountProfile() { return sourceAccountProfile; }
+
+    public static final String DESTINATION_ACCOUNT_PROFILE = "--destinationAccountProfile";
+    @Parameter(names = DESTINATION_ACCOUNT_PROFILE, description = "Destination account profile", required = false)
+    private String destinationAccountProfile = "";
+
+    public String getDestinationAccountProfile() { return destinationAccountProfile; }
 }
