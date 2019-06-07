@@ -1,7 +1,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.amazonaws</groupId>
-    <version>1.1.0</version>
+    <version>1.2.0</version>
     <artifactId>dynamodb-import-export-tool</artifactId>
     <packaging>jar</packaging>
     <name>DynamoDB Import Export Tool</name>
@@ -11,7 +11,7 @@
         <url>https://github.com/awslabs/dynamodb-import-export-tool.git</url>
     </scm>
     <properties>
-        <aws.java.sdk.version>1.11.242</aws.java.sdk.version>
+        <aws.java.sdk.version>1.11.566</aws.java.sdk.version>
         <powermock.version>1.6.2</powermock.version>
         <jcommander.version>1.48</jcommander.version>
         <guava.version>23.6-jre</guava.version>

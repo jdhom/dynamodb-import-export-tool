@@ -21,8 +21,6 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import com.google.common.base.Strings;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -82,6 +80,7 @@ public class CommandLineInterface {
         final String sourceTable = params.getSourceTable();
         final double readThroughputRatio = params.getReadThroughputRatio();
         final double writeThroughputRatio = params.getWriteThroughputRatio();
+        final double throughputRate = params.getThroughputRate();
         final int maxWriteThreads = params.getMaxWriteThreads();
         final boolean consistentScan = params.getConsistentScan();
         final boolean crossAccount = params.getCrossAccount();
@@ -137,10 +136,17 @@ public class CommandLineInterface {
                     + numSegments, e);
         }
 
-        final double readThroughput = calculateThroughput(readTableDescription,
-                readThroughputRatio, true);
-        final double writeThroughput = calculateThroughput(
-                writeTableDescription, writeThroughputRatio, false);
+        double readThroughput, writeThroughput;
+        if (throughputRate == 0) {
+            readThroughput = calculateThroughput(readTableDescription,
+                    readThroughputRatio, true);
+            writeThroughput = calculateThroughput(
+                    writeTableDescription, writeThroughputRatio, false);
+        } else {
+            readThroughput = throughputRate;
+            writeThroughput = throughputRate;
+
+        }
 
         try {
             ExecutorService sourceExec = getSourceThreadPool(numSegments);
